@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>fighter78</title>
+<style>
+  :root {
+    --bg: #0A0A0A;
+    --surface: #141414;
+    --surface2: #1E1E1E;
+    --orange: #FF6B00;
+    --orange-dim: #CC5500;
+    --orange-glow: rgba(255,107,0,0.18);
+    --text: #FFFFFF;
+    --text-secondary: #8A8A8E;
+    --divider: #2C2C2E;
+    --radius: 14px;
+    --radius-sm: 10px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── LOCK SCREEN ─────────────────────────────── */
+  #lockScreen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #000;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 32px;
+    padding: 40px 32px;
+  }
+
+  .lock-logo {
+    font-size: 42px; font-weight: 900; letter-spacing: -2px;
+    background: linear-gradient(135deg, #FF6B00, #FF9A00);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    text-transform: lowercase;
+  }
+
+  .lock-subtitle {
+    color: var(--text-secondary); font-size: 14px; text-align: center;
+    margin-top: -20px;
+  }
+
+  .lock-field-wrap { width: 100%; max-width: 280px; }
+
+  .lock-field {
+    width: 100%;
+    background: var(--surface2);
+    border: 1.5px solid var(--divider);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 17px;
+    padding: 14px 18px;
+    outline: none;
+    transition: border-color .2s;
+    -webkit-appearance: none;
+    letter-spacing: 4px;
+    text-align: center;
+  }
+  .lock-field:focus { border-color: var(--orange); }
+  .lock-field::placeholder { letter-spacing: 0; color: var(--text-secondary); }
+
+  .lock-btn {
+    width: 100%; max-width: 280px;
+    background: var(--orange);
+    color: #fff; font-size: 17px; font-weight: 700;
+    border: none; border-radius: var(--radius-sm);
+    padding: 16px; cursor: pointer;
+    transition: transform .1s, opacity .2s;
+    -webkit-appearance: none;
+  }
+  .lock-btn:active { transform: scale(0.97); opacity: .85; }
+
+  .lock-err {
+    color: #FF453A; font-size: 13px; text-align: center;
+    min-height: 18px; transition: opacity .2s;
+  }
+
+  /* ── SPLASH ────────────────────────────────────── */
+  #splash {
+    position: fixed; inset: 0; z-index: 9998;
+    background: #000;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .splash-logo {
+    font-size: 52px; font-weight: 900; letter-spacing: -2.5px;
+    background: linear-gradient(135deg, #FF6B00 0%, #FF9A00 60%, #FFC200 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    text-transform: lowercase;
+    animation: splashPop .6s cubic-bezier(.34,1.56,.64,1) both .1s;
+  }
+  @keyframes splashPop {
+    from { opacity: 0; transform: scale(.6); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  #splash.hide {
+    animation: splashFade .5s ease forwards;
+  }
+  @keyframes splashFade {
+    to { opacity: 0; transform: scale(1.05); }
+  }
+
+  /* ── APP SHELL ─────────────────────────────────── */
+  #app { display: none; min-height: 100vh; padding-bottom: calc(72px + var(--safe-bottom)); }
+
+  /* ── HEADER ────────────────────────────────────── */
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,10,.88);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    padding: calc(var(--safe-top) + 12px) 20px 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--divider);
+  }
+  .header-logo {
+    font-size: 26px; font-weight: 900; letter-spacing: -1px;
+    background: linear-gradient(135deg, #FF6B00, #FF9A00);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    text-transform: lowercase;
+  }
+  .header-actions { display: flex; gap: 10px; align-items: center; }
+  .icon-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--surface2); border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text);
+    transition: transform .1s, background .2s;
+  }
+  .icon-btn:active { transform: scale(.9); background: var(--divider); }
+  .cart-count {
+    position: absolute; top: -4px; right: -4px;
+    background: var(--orange); color: #fff;
+    font-size: 10px; font-weight: 800;
+    width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--bg);
+  }
+  .cart-wrap { position: relative; }
+
+  /* ── NAV ───────────────────────────────────────── */
+  .nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(10,10,10,.92);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-top: 1px solid var(--divider);
+    display: flex; justify-content: space-around; align-items: center;
+    padding: 8px 0 calc(8px + var(--safe-bottom));
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 3px;
+    cursor: pointer; color: var(--text-secondary);
+    font-size: 10px; font-weight: 500;
+    transition: color .2s;
+    border: none; background: none;
+    padding: 4px 0;
+  }
+  .nav-item.active { color: var(--orange); }
+  .nav-item svg { transition: transform .2s; }
+  .nav-item.active svg { transform: scale(1.15); }
+
+  /* ── PAGES ─────────────────────────────────────── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── HERO ──────────────────────────────────────── */
+  .hero {
+    background: linear-gradient(160deg, #1A0A00 0%, #0A0A0A 60%);
+    padding: 28px 20px 32px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: -60px; right: -40px;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(255,107,0,.25) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    color: var(--orange); text-transform: uppercase; margin-bottom: 10px;
+  }
+  .hero-title {
+    font-size: 34px; font-weight: 900; line-height: 1.1;
+    letter-spacing: -1px; margin-bottom: 12px;
+  }
+  .hero-title span { color: var(--orange); }
+  .hero-desc { color: var(--text-secondary); font-size: 15px; line-height: 1.5; margin-bottom: 22px; }
+  .hero-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--orange); color: #fff;
+    font-size: 15px; font-weight: 700;
+    padding: 13px 24px; border-radius: 50px;
+    border: none; cursor: pointer;
+    transition: transform .1s, box-shadow .2s;
+    box-shadow: 0 4px 24px rgba(255,107,0,.35);
+  }
+  .hero-cta:active { transform: scale(.97); }
+
+  /* ── SECTION ───────────────────────────────────── */
+  .section { padding: 24px 20px 8px; }
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .section-title { font-size: 20px; font-weight: 800; letter-spacing: -.5px; }
+  .section-link {
+    color: var(--orange); font-size: 14px; font-weight: 600;
+    background: none; border: none; cursor: pointer;
+  }
+
+  /* ── CATEGORIES ────────────────────────────────── */
+  .cats {
+    display: flex; gap: 10px;
+    overflow-x: auto; padding: 0 20px 4px;
+    scroll-snap-type: x mandatory;
+    -ms-overflow-style: none; scrollbar-width: none;
+  }
+  .cats::-webkit-scrollbar { display: none; }
+  .cat-chip {
+    flex: 0 0 auto; scroll-snap-align: start;
+    background: var(--surface2); border: 1.5px solid var(--divider);
+    color: var(--text-secondary); font-size: 13px; font-weight: 600;
+    padding: 8px 16px; border-radius: 50px;
+    cursor: pointer; transition: all .2s; white-space: nowrap;
+    border: none;
+  }
+  .cat-chip.active, .cat-chip:active {
+    background: var(--orange); color: #fff; border-color: var(--orange);
+  }
+
+  /* ── PRODUCT GRID ──────────────────────────────── */
+  .product-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; padding: 0 20px;
+  }
+  .product-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .15s;
+    border: 1px solid var(--divider);
+    position: relative;
+  }
+  .product-card:active { transform: scale(.97); }
+  .product-img {
+    width: 100%; aspect-ratio: 1;
+    object-fit: cover; display: block;
+    background: var(--surface2);
+  }
+  .product-img-placeholder {
+    width: 100%; aspect-ratio: 1;
+    background: linear-gradient(135deg, var(--surface2), #2a2a2a);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--text-secondary); font-size: 11px;
+    gap: 8px;
+  }
+  .product-badge {
+    position: absolute; top: 8px; left: 8px;
+    background: var(--orange); color: #fff;
+    font-size: 10px; font-weight: 800;
+    padding: 3px 8px; border-radius: 50px;
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+  .product-info { padding: 10px 12px 12px; }
+  .product-name { font-size: 13px; font-weight: 700; line-height: 1.3; margin-bottom: 6px; }
+  .product-bottom { display: flex; justify-content: space-between; align-items: center; }
+  .product-price { font-size: 16px; font-weight: 900; color: var(--orange); }
+  .add-btn {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--orange); color: #fff; border: none;
+    font-size: 20px; line-height: 1; display: flex;
+    align-items: center; justify-content: center;
+    cursor: pointer; transition: transform .1s;
+  }
+  .add-btn:active { transform: scale(.85); }
+
+  /* ── PROMO BANNER ──────────────────────────────── */
+  .promo-banner {
+    margin: 16px 20px;
+    background: linear-gradient(135deg, #1A0800, #2A1000);
+    border: 1px solid rgba(255,107,0,.3);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative; overflow: hidden;
+  }
+  .promo-banner::after {
+    content: '🥊';
+    position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+    font-size: 48px; opacity: .4;
+  }
+  .promo-tag {
+    font-size: 10px; font-weight: 800; letter-spacing: 2px;
+    color: var(--orange); text-transform: uppercase; margin-bottom: 6px;
+  }
+  .promo-text { font-size: 18px; font-weight: 900; letter-spacing: -.5px; }
+  .promo-sub { color: var(--text-secondary); font-size: 13px; margin-top: 4px; }
+
+  /* ── CART PAGE ─────────────────────────────────── */
+  .cart-list { padding: 0 20px; }
+  .cart-item {
+    background: var(--surface);
+    border-radius: var(--radius); padding: 14px;
+    display: flex; gap: 12px; align-items: center;
+    margin-bottom: 10px; border: 1px solid var(--divider);
+  }
+  .cart-item-img {
+    width: 64px; height: 64px; border-radius: 10px;
+    object-fit: cover; background: var(--surface2); flex-shrink: 0;
+  }
+  .cart-item-info { flex: 1; min-width: 0; }
+  .cart-item-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .cart-item-price { color: var(--orange); font-weight: 800; font-size: 15px; }
+  .qty-ctrl { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+  .qty-btn {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--surface2); border: none; color: var(--text);
+    font-size: 18px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .qty-num { font-size: 15px; font-weight: 700; min-width: 20px; text-align: center; }
+  .cart-total {
+    margin: 16px 20px;
+    background: var(--surface);
+    border-radius: var(--radius); padding: 16px 18px;
+    display: flex; justify-content: space-between; align-items: center;
+    border: 1px solid var(--divider);
+  }
+  .cart-total-label { font-size: 15px; color: var(--text-secondary); font-weight: 600; }
+  .cart-total-sum { font-size: 22px; font-weight: 900; color: var(--orange); }
+  .checkout-btn {
+    display: block; width: calc(100% - 40px); margin: 0 20px 16px;
+    background: var(--orange); color: #fff;
+    font-size: 17px; font-weight: 800;
+    padding: 16px; border-radius: 14px; border: none;
+    cursor: pointer; text-align: center;
+    transition: transform .1s; box-shadow: 0 4px 20px rgba(255,107,0,.3);
+  }
+  .checkout-btn:active { transform: scale(.98); }
+  .empty-state {
+    text-align: center; padding: 60px 20px;
+    color: var(--text-secondary);
+  }
+  .empty-state .empty-icon { font-size: 56px; margin-bottom: 16px; }
+  .empty-state h3 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .empty-state p { font-size: 14px; }
+
+  /* ── CATALOG PAGE (search + list) ──────────────── */
+  .search-bar {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm); padding: 10px 14px;
+    margin: 14px 20px;
+  }
+  .search-bar svg { color: var(--text-secondary); flex-shrink: 0; }
+  .search-bar input {
+    flex: 1; background: none; border: none; outline: none;
+    color: var(--text); font-size: 15px;
+  }
+  .search-bar input::placeholder { color: var(--text-secondary); }
+
+  /* ── PROFILE / ADMIN PAGE ──────────────────────── */
+  .profile-header {
+    padding: 28px 20px 20px;
+    text-align: center;
+  }
+  .profile-avatar {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, #FF6B00, #FF9A00);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 34px; margin: 0 auto 14px;
+  }
+  .profile-name { font-size: 22px; font-weight: 800; }
+  .profile-role { color: var(--orange); font-size: 13px; font-weight: 700; margin-top: 4px; }
+
+  .settings-group {
+    margin: 0 20px 24px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--divider);
+  }
+  .settings-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 15px 16px;
+    border-bottom: 1px solid var(--divider);
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .settings-item:last-child { border-bottom: none; }
+  .settings-item:active { background: var(--surface2); }
+  .settings-item-left { display: flex; align-items: center; gap: 12px; }
+  .settings-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--orange); display: flex;
+    align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .settings-label { font-size: 15px; font-weight: 500; }
+  .settings-arrow { color: var(--text-secondary); font-size: 13px; }
+
+  /* ── ADD PRODUCT MODAL ──────────────────────────── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(0,0,0,.75);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: flex-end;
+    opacity: 0; pointer-events: none;
+    transition: opacity .3s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    width: 100%; padding: 0 0 calc(20px + var(--safe-bottom));
+    max-height: 92vh; overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform .35s cubic-bezier(.25,.46,.45,.94);
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-handle {
+    width: 40px; height: 4px; border-radius: 2px;
+    background: var(--divider); margin: 14px auto 20px;
+  }
+  .modal-title { font-size: 20px; font-weight: 800; padding: 0 20px 16px; border-bottom: 1px solid var(--divider); }
+  .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+  .form-field { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; }
+  .form-input {
+    background: var(--surface2); border: 1.5px solid var(--divider);
+    border-radius: var(--radius-sm); color: var(--text);
+    font-size: 15px; padding: 13px 14px; outline: none;
+    -webkit-appearance: none; transition: border-color .2s;
+    width: 100%;
+  }
+  .form-input:focus { border-color: var(--orange); }
+  .form-input::placeholder { color: var(--text-secondary); }
+  textarea.form-input { resize: none; min-height: 80px; font-family: inherit; }
+
+  .photo-upload-area {
+    background: var(--surface2); border: 2px dashed var(--divider);
+    border-radius: var(--radius); padding: 32px 20px;
+    text-align: center; cursor: pointer;
+    transition: border-color .2s;
+    position: relative; overflow: hidden;
+  }
+  .photo-upload-area.has-photo { border-style: solid; border-color: var(--orange); padding: 0; }
+  .photo-upload-area:active { border-color: var(--orange); }
+  .photo-preview { width: 100%; max-height: 220px; object-fit: cover; border-radius: calc(var(--radius) - 2px); display: none; }
+  .photo-upload-area.has-photo .photo-preview { display: block; }
+  .photo-upload-area.has-photo .photo-placeholder { display: none; }
+  .photo-placeholder { pointer-events: none; }
+  .photo-placeholder svg { margin-bottom: 10px; color: var(--text-secondary); }
+  .photo-placeholder p { color: var(--text-secondary); font-size: 14px; margin-bottom: 4px; }
+  .photo-placeholder span { color: var(--orange); font-size: 13px; font-weight: 600; }
+  #photoInput { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .submit-btn {
+    background: var(--orange); color: #fff;
+    font-size: 17px; font-weight: 800;
+    padding: 16px; border-radius: 14px; border: none;
+    cursor: pointer; transition: transform .1s;
+  }
+  .submit-btn:active { transform: scale(.98); }
+
+  .cat-select {
+    background: var(--surface2); border: 1.5px solid var(--divider);
+    border-radius: var(--radius-sm); color: var(--text);
+    font-size: 15px; padding: 13px 14px; outline: none;
+    width: 100%; -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238A8A8E' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center;
+  }
+  .cat-select option { background: #1E1E1E; }
+
+  /* ── TOAST ──────────────────────────────────────── */
+  .toast {
+    position: fixed; bottom: calc(86px + var(--safe-bottom)); left: 20px; right: 20px;
+    z-index: 9000;
+    background: #1C1C1E; border-radius: var(--radius);
+    padding: 14px 18px;
+    display: flex; align-items: center; gap: 12px;
+    transform: translateY(20px); opacity: 0;
+    transition: transform .3s, opacity .3s;
+    border: 1px solid var(--divider);
+    box-shadow: 0 8px 32px rgba(0,0,0,.6);
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast-icon { font-size: 22px; flex-shrink: 0; }
+  .toast-text { font-size: 14px; font-weight: 600; }
+
+  /* ── PRODUCT DETAIL SHEET ───────────────────────── */
+  .detail-sheet .modal-body { gap: 12px; }
+  .detail-img { width: 100%; max-height: 260px; object-fit: cover; border-radius: var(--radius); }
+  .detail-name { font-size: 22px; font-weight: 900; letter-spacing: -.5px; }
+  .detail-price { font-size: 28px; font-weight: 900; color: var(--orange); }
+  .detail-desc { color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
+  .detail-cat {
+    display: inline-block;
+    background: var(--orange-glow); color: var(--orange);
+    font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+    padding: 4px 10px; border-radius: 50px;
+  }
+  .detail-actions { display: flex; gap: 10px; }
+  .detail-add {
+    flex: 1; background: var(--orange); color: #fff;
+    font-size: 16px; font-weight: 800;
+    padding: 15px; border-radius: 14px; border: none;
+    cursor: pointer; transition: transform .1s;
+  }
+  .detail-add:active { transform: scale(.97); }
+  .detail-edit {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: rgba(255,107,0,.15); border: none;
+    color: var(--orange); font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+    width: 52px; height: 52px; border-radius: 14px;
+    background: rgba(255,59,48,.15); border: none;
+    color: #FF453A; font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* scrollbar hide all */
+  * { scrollbar-width: none; }
+  *::-webkit-scrollbar { display: none; }
+
+  .spacer { height: 16px; }
+</style>
+</head>
+<body>
+
+<!-- LOCK SCREEN -->
+<div id="lockScreen">
+  <div class="lock-logo">fighter78</div>
+  <div class="lock-subtitle">Введите пароль для просмотра</div>
+  <div class="lock-field-wrap">
+    <input class="lock-field" type="password" id="lockInput" placeholder="Пароль" autocomplete="off" maxlength="20">
+  </div>
+  <button class="lock-btn" onclick="checkPass()">Войти</button>
+  <div class="lock-err" id="lockErr"></div>
+</div>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-logo">fighter78</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-logo">fighter78</div>
+    <div class="header-actions">
+      <div class="cart-wrap">
+        <button class="icon-btn" onclick="showPage('cart')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        </button>
+        <span class="cart-count" id="cartCount" style="display:none">0</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- HOME PAGE -->
+  <div class="page active" id="page-home">
+    <div class="hero">
+      <div class="hero-eyebrow">Спортивная экипировка</div>
+      <h1 class="hero-title">Тренируйся<br><span>без предела</span></h1>
+      <p class="hero-desc">Профессиональное снаряжение и питание для спортсменов любого уровня</p>
+      <button class="hero-cta" onclick="showPage('catalog')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Смотреть каталог
+      </button>
+    </div>
+
+    <div class="promo-banner">
+      <div class="promo-tag">Акция</div>
+      <div class="promo-text">Скидки до 30%<br>на боксёрскую экипировку</div>
+      <div class="promo-sub">Ограниченное время</div>
+    </div>
+
+    <div style="padding: 0 20px 4px; overflow-x:auto; display:flex; gap:10px; scroll-snap-type:x mandatory;" class="cats-home" id="catsHome"></div>
+
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Популярное</div>
+        <button class="section-link" onclick="showPage('catalog')">Все →</button>
+      </div>
+    </div>
+    <div class="product-grid" id="homeGrid"></div>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- CATALOG PAGE -->
+  <div class="page" id="page-catalog">
+    <div class="search-bar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="search" placeholder="Поиск товаров..." id="searchInput" oninput="renderCatalog()">
+    </div>
+    <div class="cats" id="catChips"></div>
+    <div class="section"><div class="section-title" style="margin-bottom:0" id="catalogCount"></div></div>
+    <div class="product-grid" id="catalogGrid" style="margin-top:12px"></div>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- CART PAGE -->
+  <div class="page" id="page-cart">
+    <div class="section" style="padding-bottom:16px"><div class="section-title">Корзина</div></div>
+    <div id="cartContent"></div>
+  </div>
+
+  <!-- PROFILE PAGE -->
+  <div class="page" id="page-profile">
+    <div class="profile-header">
+      <div class="profile-avatar">⚡</div>
+      <div class="profile-name">fighter78</div>
+      <div class="profile-role" id="profileRoleLabel">Магазин спортивной экипировки</div>
+    </div>
+
+    <!-- ADMIN ONLY -->
+    <div id="adminPanel" style="display:none">
+      <div class="section" style="padding-bottom:8px"><div class="section-title">Управление</div></div>
+      <div class="settings-group">
+        <div class="settings-item" onclick="openAddModal()">
+          <div class="settings-item-left">
+            <div class="settings-icon">➕</div>
+            <div class="settings-label">Добавить товар</div>
+          </div>
+          <div class="settings-arrow">›</div>
+        </div>
+        <div class="settings-item" onclick="showPage('catalog')">
+          <div class="settings-item-left">
+            <div class="settings-icon" style="background:#1C1C3E">📦</div>
+            <div class="settings-label">Все товары</div>
+          </div>
+          <div class="settings-arrow">›</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" style="padding-bottom:8px"><div class="section-title">О магазине</div></div>
+    <div class="settings-group">
+      <div class="settings-item">
+        <div class="settings-item-left">
+          <div class="settings-icon" style="background:#1C3020">📍</div>
+          <div class="settings-label">Адрес</div>
+        </div>
+        <div class="settings-arrow" style="font-size:12px;color:var(--text-secondary)">Добавить</div>
+      </div>
+      <div class="settings-item">
+        <div class="settings-item-left">
+          <div class="settings-icon" style="background:#1C1030">📞</div>
+          <div class="settings-label">Контакты</div>
+        </div>
+        <div class="settings-arrow" style="font-size:12px;color:var(--text-secondary)">Добавить</div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- NAV BAR -->
+<nav class="nav" id="mainNav">
+  <button class="nav-item active" id="nav-home" onclick="showPage('home')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Главная
+  </button>
+  <button class="nav-item" id="nav-catalog" onclick="showPage('catalog')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="7" height="7"/><rect x="15" y="3" width="7" height="7"/><rect x="15" y="14" width="7" height="7"/><rect x="2" y="14" width="7" height="7"/></svg>
+    Каталог
+  </button>
+  <button class="nav-item" id="nav-cart" onclick="showPage('cart')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+    Корзина
+  </button>
+  <button class="nav-item" id="nav-profile" onclick="showPage('profile')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    Профиль
+  </button>
+</nav>
+
+<!-- ADD PRODUCT MODAL -->
+<div class="modal-overlay" id="addModal" onclick="closeOnOverlay(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Добавить товар</div>
+    <div class="modal-body">
+      <div class="form-field">
+        <div class="form-label">Фото товара</div>
+        <div class="photo-upload-area" id="photoArea">
+          <input type="file" id="photoInput" accept="image/*" onchange="handlePhoto(event)">
+          <img class="photo-preview" id="photoPreview" alt="">
+          <div class="photo-placeholder">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <p>Нажми чтобы выбрать фото</p>
+            <span>из галереи телефона</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-field">
+        <div class="form-label">Название товара</div>
+        <input class="form-input" id="pName" type="text" placeholder="Например: Боксёрские перчатки">
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <div class="form-label">Цена (₽)</div>
+          <input class="form-input" id="pPrice" type="number" placeholder="2500">
+        </div>
+        <div class="form-field">
+          <div class="form-label">Категория</div>
+          <select class="cat-select form-input" id="pCat">
+            <option value="Экипировка">Экипировка</option>
+            <option value="Питание">Питание</option>
+            <option value="Одежда">Одежда</option>
+            <option value="Обувь">Обувь</option>
+            <option value="Аксессуары">Аксессуары</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field">
+        <div class="form-label">Описание</div>
+        <textarea class="form-input" id="pDesc" placeholder="Краткое описание товара..."></textarea>
+      </div>
+      <div class="form-field">
+        <div class="form-label">Метка (необязательно)</div>
+        <select class="cat-select form-input" id="pBadge">
+          <option value="">Без метки</option>
+          <option value="Новинка">Новинка</option>
+          <option value="Хит">Хит</option>
+          <option value="−20%">−20%</option>
+          <option value="−30%">−30%</option>
+        </select>
+      </div>
+      <button class="submit-btn" onclick="saveProduct()">Добавить товар</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PRODUCT MODAL -->
+<div class="modal-overlay" id="editModal" onclick="closeOnOverlay(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Редактировать товар</div>
+    <div class="modal-body">
+      <div class="form-field">
+        <div class="form-label">Фото товара</div>
+        <div class="photo-upload-area" id="editPhotoArea">
+          <input type="file" id="editPhotoInput" accept="image/*" onchange="handleEditPhoto(event)">
+          <img class="photo-preview" id="editPhotoPreview" alt="">
+          <div class="photo-placeholder">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <p>Нажми чтобы изменить фото</p>
+            <span>из галереи телефона</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-field">
+        <div class="form-label">Название товара</div>
+        <input class="form-input" id="eName" type="text" placeholder="Например: Боксёрские перчатки">
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <div class="form-label">Цена (₽)</div>
+          <input class="form-input" id="ePrice" type="number" placeholder="2500">
+        </div>
+        <div class="form-field">
+          <div class="form-label">Категория</div>
+          <select class="cat-select form-input" id="eCat">
+            <option value="Экипировка">Экипировка</option>
+            <option value="Питание">Питание</option>
+            <option value="Одежда">Одежда</option>
+            <option value="Обувь">Обувь</option>
+            <option value="Аксессуары">Аксессуары</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field">
+        <div class="form-label">Описание</div>
+        <textarea class="form-input" id="eDesc" placeholder="Краткое описание товара..."></textarea>
+      </div>
+      <div class="form-field">
+        <div class="form-label">Метка (необязательно)</div>
+        <select class="cat-select form-input" id="eBadge">
+          <option value="">Без метки</option>
+          <option value="Новинка">Новинка</option>
+          <option value="Хит">Хит</option>
+          <option value="−20%">−20%</option>
+          <option value="−30%">−30%</option>
+        </select>
+      </div>
+      <button class="submit-btn" onclick="updateProduct()">Сохранить изменения</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay detail-sheet" id="detailModal" onclick="closeOnOverlay(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-body">
+      <img class="detail-img" id="detailImg" src="" alt="" onerror="this.style.display='none'">
+      <div class="detail-cat" id="detailCat"></div>
+      <div class="detail-name" id="detailName"></div>
+      <div class="detail-price" id="detailPrice"></div>
+      <div class="detail-desc" id="detailDesc"></div>
+      <div class="detail-actions">
+        <button class="detail-add" id="detailAddBtn">В корзину</button>
+        <button class="detail-edit" id="detailEditBtn" title="Редактировать">✏️</button>
+        <button class="detail-delete" id="detailDeleteBtn" title="Удалить">🗑</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-icon" id="toastIcon">✅</div>
+  <div class="toast-text" id="toastText"></div>
+</div>
+
+<script>
+// ─── ROLES ────────────────────────────────────────
+// ADMIN_PASS — только для тебя (управление товарами)
+// VIEWER_PASS — для заказчика (только просмотр)
+const ADMIN_PASS  = 'fighter78admin';
+const VIEWER_PASS = 'preview2025';
+let isAdmin = false;
+let photoDataURL = null;
+
+function checkPass() {
+  const v = document.getElementById('lockInput').value;
+  const err = document.getElementById('lockErr');
+  if (v === ADMIN_PASS) {
+    isAdmin = true;
+    document.getElementById('lockScreen').style.display = 'none';
+    showSplash();
+  } else if (v === VIEWER_PASS) {
+    isAdmin = false;
+    document.getElementById('lockScreen').style.display = 'none';
+    showSplash();
+  } else {
+    err.textContent = 'Неверный пароль';
+    document.getElementById('lockInput').value = '';
+    setTimeout(() => err.textContent = '', 2500);
+  }
+}
+document.getElementById('lockInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkPass();
+});
+
+function showSplash() {
+  const s = document.getElementById('splash');
+  s.style.display = 'flex';
+  setTimeout(() => {
+    s.classList.add('hide');
+    setTimeout(() => {
+      s.style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('mainNav').style.display = 'flex';
+      // Apply role-based UI
+      document.getElementById('adminPanel').style.display = isAdmin ? 'block' : 'none';
+      if (isAdmin) {
+        document.getElementById('profileRoleLabel').textContent = 'Администратор';
+        document.getElementById('profileRoleLabel').style.color = 'var(--orange)';
+      }
+      renderHome();
+    }, 500);
+  }, 1200);
+}
+
+// ─── STORAGE ──────────────────────────────────────
+function getProducts() {
+  try { return JSON.parse(localStorage.getItem('f78_products') || '[]'); } catch { return []; }
+}
+function saveProducts(arr) { localStorage.setItem('f78_products', JSON.stringify(arr)); }
+function getCart() {
+  try { return JSON.parse(localStorage.getItem('f78_cart') || '[]'); } catch { return []; }
+}
+function saveCart(arr) { localStorage.setItem('f78_cart', JSON.stringify(arr)); updateCartBadge(); }
+
+// ─── NAVIGATION ───────────────────────────────────
+const pages = ['home','catalog','cart','profile'];
+function showPage(id) {
+  pages.forEach(p => {
+    document.getElementById('page-'+p).classList.toggle('active', p===id);
+    document.getElementById('nav-'+p)?.classList.toggle('active', p===id);
+  });
+  if (id==='home') renderHome();
+  if (id==='catalog') renderCatalog();
+  if (id==='cart') renderCart();
+  window.scrollTo({top:0,behavior:'instant'});
+}
+
+// ─── CATEGORIES ───────────────────────────────────
+const CATS = ['Все','Экипировка','Питание','Одежда','Обувь','Аксессуары'];
+let activeCat = 'Все';
+
+function buildCatChips(containerId, onChange) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+  c.innerHTML = '';
+  CATS.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-chip' + (cat===activeCat?' active':'');
+    btn.textContent = cat;
+    btn.onclick = () => { activeCat = cat; onChange(); };
+    c.appendChild(btn);
+  });
+}
+
+// ─── RENDER HOME ──────────────────────────────────
+function renderHome() {
+  buildCatChips('catsHome', renderHome);
+  const products = getProducts();
+  const filtered = activeCat==='Все' ? products : products.filter(p=>p.cat===activeCat);
+  const grid = document.getElementById('homeGrid');
+  grid.innerHTML = '';
+  if (!filtered.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:32px 0;text-align:center;color:var(--text-secondary);font-size:14px">Товары появятся здесь<br>после добавления 📦</div>';
+    return;
+  }
+  filtered.slice(0, 6).forEach(p => grid.appendChild(makeCard(p)));
+}
+
+// ─── RENDER CATALOG ───────────────────────────────
+function renderCatalog() {
+  buildCatChips('catChips', renderCatalog);
+  const q = (document.getElementById('searchInput')?.value||'').toLowerCase();
+  const products = getProducts();
+  let filtered = activeCat==='Все' ? products : products.filter(p=>p.cat===activeCat);
+  if (q) filtered = filtered.filter(p => p.name.toLowerCase().includes(q) || (p.desc||'').toLowerCase().includes(q));
+  const countEl = document.getElementById('catalogCount');
+  if (countEl) countEl.textContent = filtered.length ? `${filtered.length} товаров` : '';
+  const grid = document.getElementById('catalogGrid');
+  grid.innerHTML = '';
+  if (!filtered.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:40px 0;text-align:center;color:var(--text-secondary);font-size:14px">Ничего не найдено 🔍</div>';
+    return;
+  }
+  filtered.forEach(p => grid.appendChild(makeCard(p)));
+}
+
+// ─── PRODUCT CARD ─────────────────────────────────
+function makeCard(p) {
+  const card = document.createElement('div');
+  card.className = 'product-card';
+  card.onclick = () => openDetail(p);
+  const imgPart = p.photo
+    ? `<img class="product-img" src="${p.photo}" alt="${p.name}" loading="lazy">`
+    : `<div class="product-img-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Фото</span></div>`;
+  const badge = p.badge ? `<div class="product-badge">${p.badge}</div>` : '';
+  card.innerHTML = `${imgPart}${badge}<div class="product-info"><div class="product-name">${p.name}</div><div class="product-bottom"><div class="product-price">${Number(p.price).toLocaleString('ru')} ₽</div><button class="add-btn" onclick="event.stopPropagation();addToCart(${p.id})">+</button></div></div>`;
+  return card;
+}
+
+// ─── DETAIL MODAL ─────────────────────────────────
+let currentDetailId = null;
+function openDetail(p) {
+  currentDetailId = p.id;
+  const img = document.getElementById('detailImg');
+  if (p.photo) { img.src = p.photo; img.style.display='block'; } else { img.style.display='none'; }
+  document.getElementById('detailCat').textContent = p.cat || '';
+  document.getElementById('detailName').textContent = p.name;
+  document.getElementById('detailPrice').textContent = Number(p.price).toLocaleString('ru') + ' ₽';
+  document.getElementById('detailDesc').textContent = p.desc || 'Описание отсутствует.';
+  document.getElementById('detailAddBtn').onclick = () => { addToCart(p.id); closeModal('detailModal'); };
+  document.getElementById('detailEditBtn').onclick = () => { closeModal('detailModal'); openEditModal(p.id); };
+  document.getElementById('detailDeleteBtn').onclick = () => deleteProduct(p.id);
+  // Show admin controls only for admin
+  document.getElementById('detailEditBtn').style.display = isAdmin ? 'flex' : 'none';
+  document.getElementById('detailDeleteBtn').style.display = isAdmin ? 'flex' : 'none';
+  openModal('detailModal');
+}
+
+function deleteProduct(id) {
+  if (!confirm('Удалить этот товар?')) return;
+  const products = getProducts().filter(p => p.id !== id);
+  saveProducts(products);
+  closeModal('detailModal');
+  renderHome(); renderCatalog();
+  showToast('Товар удалён', '🗑');
+}
+
+// ─── CART ─────────────────────────────────────────
+function addToCart(id) {
+  const cart = getCart();
+  const existing = cart.find(i => i.id === id);
+  if (existing) existing.qty++;
+  else cart.push({id, qty:1});
+  saveCart(cart);
+  showToast('Добавлено в корзину', '🛒');
+}
+
+function updateCartBadge() {
+  const cart = getCart();
+  const total = cart.reduce((s,i)=>s+i.qty,0);
+  const badge = document.getElementById('cartCount');
+  badge.style.display = total ? 'flex' : 'none';
+  badge.textContent = total;
+}
+
+function renderCart() {
+  const cart = getCart();
+  const products = getProducts();
+  const content = document.getElementById('cartContent');
+  if (!cart.length) {
+    content.innerHTML = `<div class="empty-state"><div class="empty-icon">🛒</div><h3>Корзина пуста</h3><p>Добавьте товары из каталога</p></div>`;
+    return;
+  }
+  let html = '<div class="cart-list">';
+  let total = 0;
+  cart.forEach(item => {
+    const p = products.find(x => x.id === item.id);
+    if (!p) return;
+    const sub = p.price * item.qty;
+    total += sub;
+    const imgPart = p.photo ? `<img class="cart-item-img" src="${p.photo}" alt="">` : `<div class="cart-item-img" style="display:flex;align-items:center;justify-content:center;font-size:24px">📦</div>`;
+    html += `<div class="cart-item">${imgPart}<div class="cart-item-info"><div class="cart-item-name">${p.name}</div><div class="cart-item-price">${Number(p.price).toLocaleString('ru')} ₽</div><div class="qty-ctrl"><button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button><span class="qty-num">${item.qty}</span><button class="qty-btn" onclick="changeQty(${item.id},1)">+</button></div></div></div>`;
+  });
+  html += '</div>';
+  html += `<div class="cart-total"><div class="cart-total-label">Итого</div><div class="cart-total-sum">${Number(total).toLocaleString('ru')} ₽</div></div>`;
+  html += `<button class="checkout-btn">Оформить заказ</button>`;
+  content.innerHTML = html;
+}
+
+function changeQty(id, delta) {
+  let cart = getCart();
+  const item = cart.find(i => i.id === id);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) cart = cart.filter(i => i.id !== id);
+  saveCart(cart);
+  renderCart();
+}
+
+// ─── ADD PRODUCT ──────────────────────────────────
+function openAddModal() { photoDataURL = null; document.getElementById('photoArea').classList.remove('has-photo'); document.getElementById('photoPreview').src=''; document.getElementById('pName').value=''; document.getElementById('pPrice').value=''; document.getElementById('pDesc').value=''; document.getElementById('pBadge').value=''; openModal('addModal'); }
+
+function handlePhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    photoDataURL = ev.target.result;
+    const preview = document.getElementById('photoPreview');
+    preview.src = photoDataURL;
+    document.getElementById('photoArea').classList.add('has-photo');
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveProduct() {
+  const name = document.getElementById('pName').value.trim();
+  const price = document.getElementById('pPrice').value;
+  const cat = document.getElementById('pCat').value;
+  const desc = document.getElementById('pDesc').value.trim();
+  const badge = document.getElementById('pBadge').value;
+  if (!name || !price) { showToast('Заполни название и цену', '⚠️'); return; }
+  const products = getProducts();
+  const id = Date.now();
+  products.push({ id, name, price: Number(price), cat, desc, badge, photo: photoDataURL });
+  saveProducts(products);
+  closeModal('addModal');
+  showToast('Товар добавлен!', '✅');
+  renderHome();
+}
+
+// ─── EDIT PRODUCT ─────────────────────────────────
+let editPhotoDataURL = null;
+let editingId = null;
+
+function openEditModal(id) {
+  const p = getProducts().find(x => x.id === id);
+  if (!p) return;
+  editingId = id;
+  editPhotoDataURL = p.photo || null;
+
+  const area = document.getElementById('editPhotoArea');
+  const preview = document.getElementById('editPhotoPreview');
+  if (p.photo) {
+    preview.src = p.photo;
+    area.classList.add('has-photo');
+  } else {
+    preview.src = '';
+    area.classList.remove('has-photo');
+  }
+
+  document.getElementById('eName').value = p.name || '';
+  document.getElementById('ePrice').value = p.price || '';
+  document.getElementById('eDesc').value = p.desc || '';
+  document.getElementById('eBadge').value = p.badge || '';
+  const catSel = document.getElementById('eCat');
+  for (let i = 0; i < catSel.options.length; i++) {
+    if (catSel.options[i].value === p.cat) { catSel.selectedIndex = i; break; }
+  }
+  openModal('editModal');
+}
+
+function handleEditPhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    editPhotoDataURL = ev.target.result;
+    const preview = document.getElementById('editPhotoPreview');
+    preview.src = editPhotoDataURL;
+    document.getElementById('editPhotoArea').classList.add('has-photo');
+  };
+  reader.readAsDataURL(file);
+}
+
+function updateProduct() {
+  const name = document.getElementById('eName').value.trim();
+  const price = document.getElementById('ePrice').value;
+  const cat = document.getElementById('eCat').value;
+  const desc = document.getElementById('eDesc').value.trim();
+  const badge = document.getElementById('eBadge').value;
+  if (!name || !price) { showToast('Заполни название и цену', '⚠️'); return; }
+  const products = getProducts();
+  const idx = products.findIndex(x => x.id === editingId);
+  if (idx === -1) return;
+  products[idx] = { ...products[idx], name, price: Number(price), cat, desc, badge, photo: editPhotoDataURL };
+  saveProducts(products);
+  closeModal('editModal');
+  showToast('Изменения сохранены', '✅');
+  renderHome(); renderCatalog();
+}
+
+
+function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+function closeOnOverlay(e) { if (e.target.classList.contains('modal-overlay')) closeModal(e.target.id); }
+
+// ─── TOAST ────────────────────────────────────────
+let toastTimer;
+function showToast(text, icon='✅') {
+  const t = document.getElementById('toast');
+  document.getElementById('toastText').textContent = text;
+  document.getElementById('toastIcon').textContent = icon;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ─── INIT ─────────────────────────────────────────
+updateCartBadge();
+</script>
+</body>
+</html>
